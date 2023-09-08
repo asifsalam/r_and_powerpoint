@@ -2,37 +2,62 @@
 # email: asif.salam@yahoo.com
 # Date: 2023-08-06
 
-# library(RCurl)
-# library(XML)
+# Load packages
 library(tidyverse)
 library(rvest)
 
+# Set some useful variables
 data_dir <- "./data"
-clint_eastwood_films_file <- file.path(data_dir,"clint_eastwood_films.tsv")
 poster_dir <- "./posters"
-
+clint_eastwood_films_file <- file.path(data_dir,"clint_eastwood_films.tsv")
 actor_name <- "Clint Eastwood"
-actor_url <- "http://www.imdb.com/name/nm0000142/?ref_=fn_al_nm_1"
-local_file <- ".//imdb-clint2//Clint Eastwood - IMDb.htm"
+actor_url <- "http://www.imdb.com/name/nm0000142/"
+local_file <- ".//imdb-clint//Clint Eastwood - IMDb.htm"
+
+# Read in locally stored page
 local_page <- read_html(local_file)
+
+# The same could be done with the online webpage, with a few minor modifications
 # html_page <- read_html(actor_url)
 
 filmography_div_selector <- "#accordion-item-actor-previous-projects"
 filmography_div <- local_page %>% html_nodes(filmography_div_selector)
+
 filmography_list <- filmography_div %>% html_elements("li.ipc-metadata-list-summary-item")
 
 poster_list <- filmography_list %>% html_element("img")
 # The src is actually the local path to the saved file, in this case
 poster_urls <- poster_list %>% html_attr("src")
 
-film_title_list <- filmography_list %>% html_element("div.ipc-metadata-list-summary-item__tc") %>% html_element("a.ipc-metadata-list-summary-item__t")
+film_title_list <- filmography_list %>% 
+    html_element("div.ipc-metadata-list-summary-item__tc") %>% 
+    html_element("a.ipc-metadata-list-summary-item__t")
 film_titles <- film_title_list %>% html_text2()
 film_urls <- film_title_list %>% html_attr("href")
 
-character_list <- filmography_list %>% html_element("div.ipc-metadata-list-summary-item__tc") %>% html_element("span.ipc-metadata-list-summary-item__li")
+character_list <- filmography_list %>% 
+    html_element("div.ipc-metadata-list-summary-item__tc") %>% 
+    html_element("li.ipc-inline-list__item") %>% 
+    html_element("span")
 characters <- character_list %>% html_text2()
 
-film_year_list <- filmography_list %>% html_element("div.ipc-metadata-list-summary-item__cc") %>% html_element("span.ipc-metadata-list-summary-item__li")
+# This also works
+# character_list <- filmography_list %>% 
+#   html_element("div.ipc-metadata-list-summary-item__tc") %>% 
+#   html_element("span.ipc-metadata-list-summary-item__li")
+# characters <- character_list %>% html_text2()
+
+# rvest supports XPath as well, so this is also possible
+# characters <- filmography_list %>% html_elements(xpath="//div[@class='ipc-metadata-list-summary-item__tc']/ul/li/span") %>% html_text2()
+
+# film_year_list <- filmography_list %>% 
+#    html_element("div.ipc-metadata-list-summary-item__cc") %>% 
+#    html_element("span.ipc-metadata-list-summary-item__li")
+
+film_year_list <- filmography_list %>% 
+    html_element("div.ipc-metadata-list-summary-item__cc") %>%
+    html_element("li.ipc-inline-list__item") %>% 
+    html_element("span")
 film_years <- film_year_list %>% html_text2()
 
 additional_info_list <- filmography_list %>% html_element("div.ipc-metadata-list-summary-item__tc")

@@ -4,19 +4,18 @@
 # Date: 2023-08-06
 
 library(tidyverse)
-library(stringr)
 library(reticulate)
 
 ################# Create a dataset with filmography and film revenue #################
 # download and read in the data files
 
 # If downloading the files from the github repo
-# download.file("https://raw.githubusercontent.com/asifsalam/PowerPoint_from_R/master/eastwood_films.tsv",
-#              destfile = "films.tsv")
-# download.file("https://raw.githubusercontent.com/asifsalam/PowerPoint_from_R/master/eastwood_box_office.tsv", 
-#              destfile = "box_office.tsv")
+# download.file("https://raw.githubusercontent.com/asifsalam/r_and_powerpoint/main/data/clint_eastwood_films.tsv",
+#              destfile = "clint_eastwood_films.tsv")
+# download.file("https://raw.githubusercontent.com/asifsalam/r_and_powerpoint/main/data/clint_eastwood_box_office.csv", 
+#              destfile = "clint_eastwood_box_office.csv")
 
-# output directory and file to save the created PowerPoint presentation
+# Output directory and file to save the created PowerPoint presentation
 # Requires some path gymnastics to get this to work. The R path strings don't seem to work.
 output_dir <- file.path(getwd(),"output")
 output_file <- gsub("/","\\\\",file.path(output_dir,"clint_eastwood_filmogrpahy.pptx"))
@@ -24,18 +23,21 @@ output_file <- gsub("/","\\\\",file.path(output_dir,"clint_eastwood_filmogrpahy.
 clint_films <- read.table("./data/clint_eastwood_films.tsv",header=TRUE, stringsAsFactors=FALSE)
 box_office <- read.table("./data/clint_eastwood_box_office.csv",header=TRUE, stringsAsFactors=FALSE)
 
-
 # remove tv series
-clint_films_only <- clint_films %>% filter(!grepl("series",str_to_lower(additional_info)))
+films <- clint_films %>% filter(!grepl("series",str_to_lower(additional_info)))
 # Remove some films where the roles are uncredited - American Sniper, Casper, Breezy
-clint_films_only <- clint_films_only[-which(clint_films_only$key %in% c("americansniper","casper","breezy")),]
+films <- films[-which(films$key %in% c("americansniper","casper","breezy")),]
 
-clint_films_revenue <- left_join(clint_films_only,box_office[,c("key","adjusted_gross")],by="key")
-clint_films_revenue$adjusted_gross[clint_films_revenue$key=="crymacho"] <- 16510734
-clint_films_revenue$adjusted_gross[clint_films_revenue$key=="themule"] <- 174800000
+films <- left_join(films,box_office[,c("key","adjusted_gross")],by="key")
+films$adjusted_gross[films$key=="crymacho"] <- 16510734
+films$adjusted_gross[films$key=="themule"] <- 174800000
+films <- films %>% arrange(id)
 # clint_films_revenue$adjusted_gross[clint_films_revenue$key=="breezy"] <- 200000
 
-film_revenue <- clint_films_revenue %>% filter(!is.na(adjusted_gross)) %>% filter(adjusted_gross > 0) %>% arrange(desc(adjusted_gross))
+film_revenue <- films %>% filter(!is.na(adjusted_gross)) %>% filter(adjusted_gross > 0) %>% arrange(desc(adjusted_gross))
+
+nrow(films)
+
 
 ########## Creating the PowerPoint Slide ###################
 
@@ -101,7 +103,7 @@ title_font[["Size"]] <- 36
 title_font[["Name"]] <- "Calibri"
 
 # Add some decorative elements
-diameter <- 85
+diameter <- 100
 # Add a line
 line1 <- slide1[["Shapes"]]$AddLine(0,diameter/2,slide_width,diameter/2)
 line1_attr <- line1[["Line"]]
@@ -148,10 +150,24 @@ earnings_font[["Size"]] <- 20
 earnings_para <- earnings_range[["ParagraphFormat"]]
 earnings_para[["Alignment"]] <- ms$ppAlignRight
 
+# Animate these elements
+# Add a sequence to the slide timeline: https://msdn.microsoft.com/en-us/library/office/ff746823.aspx
+seq_main <- slide1[["TimeLine"]][["MainSequence"]]
+
+animation_start(seq_main,slide_title,ms$msoAnimEffectDescend,ms$msoAnimTriggerWithPrevious,
+                0, -20,0,0,1,0)
+animation_start(seq_main,line1,ms$msoAnimEffectFly,ms$msoAnimTriggerAfterPrevious,
+                100, diameter/slide_height,0,diameter/slide_height,1,0)
+animation_start(seq_main,circle1,ms$msoAnimEffectFly,ms$msoAnimTriggerWithPrevious,
+                -100, diameter/slide_height,0,diameter/slide_height,1,0)
+animation_start(seq_main,earnings_text,ms$msoAnimEffectFly,ms$msoAnimTriggerWithPrevious,
+                0, 100,(slide_width-4*diameter)/slide_width,diameter/slide_height,1,0)
+
+
 # Place the poster images on the slide. 
 # There are 60 movie images that need to be placed, so 20 columns by 3 rows
-films <- clint_films_revenue %>% arrange(id)
-films$id <- 1:nrow(films)
+#films <- clint_films_revenue %>% arrange(id)
+#films$id <- 1:nrow(films)
 num_cols <- 20
 num_rows <- ceiling(nrow(films)/num_cols)
 
@@ -197,16 +213,17 @@ sort_line <- sort_text[["Line"]]
 sort_line[["Visible"]] <- 0
 
 # Create buttons that will sort and animate the poster images - alphanumeric
-button_alpha <- slide1[["Shapes"]]$AddShape(ms$msoShapeRectangle,slide_width - 300,10,100,40)
-bta_fill <- button_alpha[["Fill"]]
-bta_fill[["Visible"]] <-0
-bta_rgb <- bta_fill[["ForeColor"]][["RGB"]]
+button_alpha <- slide1[["Shapes"]]$AddShape(ms$msoShapeRectangle,100,100,150,40)
+bta <- button_alpha[["TextFrame"]][["TextRange"]]
+bta[["Text"]] <- "Title"
 
 bta_line <- button_alpha[["Line"]]
 bta_line[["ForeColor"]][["RGB"]] <- pp_rgb(243,211,129)
 
-bta <- button_alpha[["TextFrame"]][["TextRange"]]
-bta[["Text"]] <- "Title"
+bta_fill <- button_alpha[["Fill"]]
+bta_fill[["Visible"]] <-0
+bta_rgb <- bta_fill[["ForeColor"]][["RGB"]]
+
 bta_font <- bta[["Font"]]
 bta_font[["Size"]] <- 14
 bta_font[["Color"]] <- pp_rgb(243,211,129)
@@ -216,24 +233,9 @@ button_alpha[["Height"]] <- 15
 button_alpha[["Top"]] <- image_height*image_offset - 20 - 3
 button_alpha[["Left"]] <- sort_text[["Width"]] - 2
 
-# Add a sequence to the slide timeline: https://msdn.microsoft.com/en-us/library/office/ff746823.aspx
-seq_main <- slide1[["TimeLine"]][["MainSequence"]]
-
-animation_start(seq_main,slide_title,ms$msoAnimEffectDescend,ms$msoAnimTriggerWithPrevious,
-                0, -20,0,0,1,0)
-animation_start(seq_main,line1,ms$msoAnimEffectFly,ms$msoAnimTriggerAfterPrevious,
-                100, diameter/slide_height,0,diameter/slide_height,1,0)
-animation_start(seq_main,circle1,ms$msoAnimEffectFly,ms$msoAnimTriggerWithPrevious,
-                -100, diameter/slide_height,0,diameter/slide_height,1,0)
-animation_start(seq_main,earnings_text,ms$msoAnimEffectFly,ms$msoAnimTriggerWithPrevious,
-                0, 100,(slide_width-4*diameter)/slide_width,diameter/slide_height,1,0)
-animation_start(seq_main,sort_text,ms$msoAnimEffectWipe,ms$msoAnimTriggerAfterPrevious,
-                0, 0,0,0,1,0)
-animation_start(seq_main,button_alpha,ms$msoAnimEffectDissolve,ms$msoAnimTriggerWithPrevious,
-                0, 0,0,0,1,0)
 
 # Create buttons that will sort and animate the poster images - date
-button_date <- slide1[["Shapes"]]$AddShape(ms$msoShapeRectangle,slide_width - 350+160,10,150,40)
+button_date <- slide1[["Shapes"]]$AddShape(ms$msoShapeRectangle,200+160,100,150,40)
 btd <- button_date[["TextFrame"]][["TextRange"]]
 btd[["Text"]] <- "Release Year"
 
@@ -254,9 +256,15 @@ button_date[["Top"]] <- image_height*image_offset - 20 - 3
 button_date[["Left"]] <- sort_text[["Width"]] - 2
 
 # https://msdn.microsoft.com/EN-US/library/office/ff745511.aspx
+animation_start(seq_main,sort_text,ms$msoAnimEffectWipe,ms$msoAnimTriggerAfterPrevious,
+                0, 0,0,0,1,0)
+animation_start(seq_main,button_alpha,ms$msoAnimEffectDissolve,ms$msoAnimTriggerWithPrevious,
+                0, 0,0,0,1,0)
 
+# We need different timelines for the alphanumeric and year sort
 seq_alpha = slide1[["TimeLine"]][["InteractiveSequences"]]$Add()
 seq_date = slide1[["TimeLine"]][["InteractiveSequences"]]$Add()
+
 seq_alpha2 = slide1[["TimeLine"]][["InteractiveSequences"]]$Add()
 seq_date2 = slide1[["TimeLine"]][["InteractiveSequences"]]$Add()
 
@@ -285,6 +293,7 @@ for (i in 1:nrow(films)) {
     link <- image$ActionSettings(ms$ppMouseClick)[["Hyperlink"]]
     link[["Address"]] <- films$film_url[i]
     link[["ScreenTip"]] <- paste0(films$title[i],"\nCharacter: ",films$character[i],"\nRelease Year: ",films$release_year[i])
+    cat("id: ",i, "- Title: ",films$title[i],"\n")
     
     index <- which(films$title[order(films$title)]==films$title[i]) - 1
     l1 <- format((0 + image_width * (index %% num_cols) - x)/slide_width,digits=3)
@@ -422,7 +431,7 @@ for (i in 1:nrow(film_revenue)) {
     bar_fill <- bar[["Fill"]]
     bar_fill[["ForeColor"]][["RGB"]] <- pp_rgb(217,161,21)
     
-        index <- which(film_revenue$id[order(film_revenue$id)]==film_revenue$id[i]) - 1
+    index <- which(film_revenue$id[order(film_revenue$id)]==film_revenue$id[i]) - 1
     l1 <- format((margin_left + bar_w * index - x)/slide_width,digits=3)
     l2 <- format((0)/slide_height,digits=3)
     
