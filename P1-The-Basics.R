@@ -11,7 +11,7 @@ library(reticulate)
 # Define directory and file to save PowerPoint presentation
 # Requires some path gymnastics to get this to work. The R path strings don't seem to work.
 output_dir <- file.path(getwd(),"output")
-output_file <- gsub("/","\\\\",file.path(output_dir,"PowerPoint_R_Basics.pptx"))
+
 
 # Setup the python interface
 pypath <- "C:/Program Files/Python310/"
@@ -112,6 +112,7 @@ shp3_line <- shp3[["Line"]]
 shp3_line[["Visible"]] <- 0
 
 # Finally, save the file in the output directory
+output_file <- gsub("/","\\\\",file.path(output_dir,"P1-Basics.pptx"))
 presentation$SaveAs(output_file)
 
 # To save in the working directory

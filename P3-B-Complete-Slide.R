@@ -15,10 +15,8 @@ library(reticulate)
 # download.file("https://raw.githubusercontent.com/asifsalam/r_and_powerpoint/main/data/clint_eastwood_box_office.csv", 
 #              destfile = "clint_eastwood_box_office.csv")
 
-# Output directory and file to save the created PowerPoint presentation
-# Requires some path gymnastics to get this to work. The R path strings don't seem to work.
+# Output directory to save the created PowerPoint presentation
 output_dir <- file.path(getwd(),"output")
-output_file <- gsub("/","\\\\",file.path(output_dir,"clint_eastwood_filmogrpahy.pptx"))
 
 clint_films <- read.table("./data/clint_eastwood_films.tsv",header=TRUE, stringsAsFactors=FALSE)
 box_office <- read.table("./data/clint_eastwood_box_office.csv",header=TRUE, stringsAsFactors=FALSE)
@@ -559,4 +557,6 @@ animation_start(seq_main,label2,ms$msoAnimEffectEaseIn,trigger_seq,
 
 # Finally, save the file in the working directory
 # does not work: presentation$SaveAs(file.path(output_dir,"clint_eastwood_filmography"))
+# Requires some path gymnastics to get this to work. The R path strings don't seem to work.
+output_file <- gsub("/","\\\\",file.path(output_dir,"P3-B-Complete-Slide.pptx"))
 presentation$SaveAs(output_file)
