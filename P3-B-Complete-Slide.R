@@ -56,7 +56,7 @@ pp_rgb <- function(r,g,b) {
 # Microsoft parameters
 source("mso.txt")
 # Some utility functions
-source("automate_powerpoint_functions.R")
+source("utility_functions.R")
 
 # Create the PowerPoint slide
 pp = pywin$Dispatch('Powerpoint.Application')
