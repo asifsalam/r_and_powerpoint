@@ -219,7 +219,8 @@ bta_line <- button_alpha[["Line"]]
 bta_line[["ForeColor"]][["RGB"]] <- pp_rgb(243,211,129)
 
 bta_fill <- button_alpha[["Fill"]]
-bta_fill[["Visible"]] <-0
+bta_fill[["Visible"]] <- 1
+bta_fill[["Transparency"]] <- 0.95
 bta_rgb <- bta_fill[["ForeColor"]][["RGB"]]
 
 bta_font <- bta[["Font"]]
@@ -238,7 +239,8 @@ btd <- button_date[["TextFrame"]][["TextRange"]]
 btd[["Text"]] <- "Release Year"
 
 btd_fill <- button_date[["Fill"]]
-btd_fill[["Visible"]] <-0
+btd_fill[["Visible"]] <- 1
+btd_fill[["Transparency"]] <- 0.95
 
 btd_line <- button_date[["Line"]]
 btd_line[["ForeColor"]][["RGB"]] <- pp_rgb(243,211,129)
@@ -362,7 +364,8 @@ btd <- btn_release[["TextFrame"]][["TextRange"]]
 btd[["Text"]] <- "Release Year"
 
 btd_fill <- btn_release[["Fill"]]
-btd_fill[["Visible"]] <-0
+btd_fill[["Visible"]] <- 1
+btd_fill[["Transparency"]] <- 0.95
 
 btd_line <- btn_release[["Line"]]
 btd_line[["ForeColor"]][["RGB"]] <- pp_rgb(243,211,129)
@@ -388,7 +391,8 @@ btd <- btn_earnings[["TextFrame"]][["TextRange"]]
 btd[["Text"]] <- "Earnings"
 
 btd_fill <- btn_earnings[["Fill"]]
-btd_fill[["Visible"]] <-0
+btd_fill[["Visible"]] <- 1
+btd_fill[["Transparency"]] <- 0.95
 
 btd_line <- btn_earnings[["Line"]]
 btd_line[["ForeColor"]][["RGB"]] <- pp_rgb(243,211,129)
